@@ -2,6 +2,9 @@
 
 public class ChangeEvent
 {
+    public Guid EventId { get; set; }
+    
+    public DateTime Timestamp { get; set; }
     public Operation Operation { get; set; }
-    public Dictionary<string, object> Values { get; set; } = new Dictionary<string, object>();
+    public Dictionary<string, object> Values { get; } = new Dictionary<string, object>();
 }
