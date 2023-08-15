@@ -1,39 +1,74 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Reactive.Subjects;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using MilestoneTG.ChangeStream.Server.SqlServer;
+﻿using MilestoneTG.ChangeStream.Server.SqlServer;
 
 namespace MilestoneTG.ChangeStream.Server;
 
-public class Propagator : IHostedService
+/// <summary>
+/// Creates and manages Source/Destination instance pairs and their lifecycle.
+/// Subscribes the destination to the source's IObservable.
+/// </summary>
+sealed class Propagator
 {
-    readonly ILoggerFactory _loggerFactory;
+    readonly SourceSettings _sourceSettings;
+    readonly DestinationSettings _destinationSettings;
+    readonly IServiceProvider _container;
+    readonly ILogger<Propagator> _logger;
 
-    public Propagator(ILoggerFactory loggerFactory)
+    IChangeSource? _source;
+    IDestination? _destination;
+    
+    public Propagator(SourceSettings sourceSettings, DestinationSettings destinationSettings, IServiceProvider container)
     {
-        _loggerFactory = loggerFactory;
+        _sourceSettings = sourceSettings;
+        _destinationSettings = destinationSettings;
+        _container = container;
+        _logger = container.GetRequiredService<ILogger<Propagator>>();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         try
         {
-            var source = new SqlServerChangeSource(cancellationToken, _loggerFactory);
-            var jsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
-
-            source.Subscribe(changeEvent => Console.WriteLine(JsonSerializer.Serialize(changeEvent, jsonOptions)));
-
-            await Task.Delay(Timeout.Infinite, cancellationToken);
+            switch (_sourceSettings.SourceType.ToLowerInvariant())
+            {
+                case "sqlserver":
+                    _source = _container.GetRequiredService<SqlServerChangeSource>();
+                    break;
+                default:
+                    _source = (IChangeSource)_container.GetRequiredService(Type.GetType(_sourceSettings.SourceType)!);
+                    break;
+            }
+            
+            switch (_destinationSettings.DestinationType.ToLowerInvariant())
+            {
+                case "console":
+                    _destination = new ConsoleDestination();
+                    break;
+                default:
+                    _destination = (IDestination)_container.GetRequiredService(Type.GetType(_destinationSettings.DestinationType)!);
+                    break;
+            }
+            
+            _source.Configure(_sourceSettings);
+            
+            _source.ChangeStream.Subscribe(onNext: _destination.Publish, onError: OnError);
+            _source.StartObserving();
         }
         catch (TaskCanceledException)
         {
             //expected. Graceful shutdown.
         }
-    }
 
+        return Task.CompletedTask;
+    }
+    
     public Task StopAsync(CancellationToken cancellationToken)
     {
+        _source?.StopObserving();
         return Task.CompletedTask;
+    }
+
+    void OnError(Exception exception)
+    {
+        _logger.LogError(exception, exception.Message);
     }
 }

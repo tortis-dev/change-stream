@@ -1,122 +1,92 @@
-﻿using System.Reactive.Subjects;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
 
 namespace MilestoneTG.ChangeStream.Server.SqlServer;
 
-public class SqlServerChangeSource : IChangeSource
+public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
 {
-    readonly ILogger<SqlServerChangeSource> _logger;
-    readonly ISubject<ChangeEvent> _changeStream = new Subject<ChangeEvent>();
-
-    Task _cdcTask;
-    readonly CancellationToken _cancellationToken;
-    
-    public SqlServerChangeSource(CancellationToken cancellationToken, ILoggerFactory loggerFactory)
+    public SqlServerChangeSource(IConnectionStringFactory connectionStringFactory, ILogger<SqlServerChangeSource> logger) 
+        : base(connectionStringFactory, logger)
     {
-        _logger = loggerFactory.CreateLogger<SqlServerChangeSource>();
-        _cancellationToken = cancellationToken;
-        _cdcTask = Task.Factory.StartNew(StartAsync, _cancellationToken);
-    }
-    
-    public IDisposable Subscribe(Action<ChangeEvent> onNext)
-    {
-        return _changeStream.Subscribe(onNext);
     }
 
-    async Task StartAsync()
+    protected override async Task Worker(CancellationToken cancellationToken)
     {
-        const string schema_name = "dbo";
-        const string table_name = "person";
-        const string capture_instance = $"{schema_name}_{table_name}";
-
-        _logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} started.", table_name, schema_name);
-
-        var cn = new SqlConnection(@"server=.\sqlexpress;database=change_stream_example;Integrated Security=SSPI;Encrypt=false");
+        if (Settings == null || string.IsNullOrWhiteSpace(Settings.SchemaName) ||
+            string.IsNullOrWhiteSpace(Settings.TableName))
+            throw new ApplicationException("Not configured.");
         
-        var getInitialLsns = new SqlCommand("select next_lsn from next_lsn where table_name = @table_name", cn);
-        getInitialLsns.Parameters.Add(new SqlParameter("@table_name", System.Data.SqlDbType.NVarChar, 128) { Value = capture_instance } );
+        string schemaName = Settings.SchemaName;
+        string tableName = Settings.TableName;
+        string captureInstance = $"{schemaName}_{tableName}";
 
-        var updateLsn = new SqlCommand("update next_lsn set next_lsn = @lsn where table_name = @table_name", cn);
-        updateLsn.Parameters.Add("@lsn", System.Data.SqlDbType.Binary, 10);
-        updateLsn.Parameters.Add(new SqlParameter("@table_name", System.Data.SqlDbType.NVarChar, 128) { Value = capture_instance });
+        var sqlConnection = new SqlConnection(ConnectionStringFactory.GetConnectionString(Settings.SourceName));
+        sqlConnection.StateChange += CnOnStateChange;
+        await sqlConnection.OpenAsync(cancellationToken);
+        
+        var journal = new Journal(sqlConnection);
+        await journal.EnsureCreatedAsync(cancellationToken);
+        
+        var getChanges = new GetChangesCommand(sqlConnection, captureInstance);
 
-        var getLatestLsn = new SqlCommand("select sys.fn_cdc_get_max_lsn() as to_lsn", cn);
-        var getNextLsn = new SqlCommand("select sys.fn_cdc_increment_lsn(@lastLsn)", cn);
-        getNextLsn.Parameters.Add("@lastLsn", System.Data.SqlDbType.Binary, 10);
-       
-        var getChanges = new SqlCommand($"select * from cdc.fn_cdc_get_all_changes_{capture_instance}( @from_lsn , @to_lsn , N'all' )", cn);
-        getChanges.Parameters.Add("@from_lsn", System.Data.SqlDbType.Binary, 10);
-        getChanges.Parameters.Add("@to_lsn", System.Data.SqlDbType.Binary, 10);
-
-        var fromLsn = new byte[10];
-        var toLsn = new byte[10];
-
-        await cn.OpenAsync();
- 
-        using (var rdr = await getInitialLsns.ExecuteReaderAsync())
+        Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} started.", tableName, schemaName);
+        
+        while (!cancellationToken.IsCancellationRequested)
         {
-            if (await rdr.ReadAsync())
-                rdr.GetBytes(0, 0, fromLsn, 0, 10);
-        }
-
-        while (!_cancellationToken.IsCancellationRequested)
-        {
-            using (var rdr = getLatestLsn.ExecuteReader())
-            {
-                if (rdr.Read())
-                    rdr.GetBytes(0, 0, toLsn, 0, 10);
-            }
-
-            //Console.WriteLine("From: {0} To: {1}", Convert.ToHexString(fromLsn), Convert.ToHexString(toLsn));
-            getChanges.Parameters["@from_lsn"].Value = fromLsn;
-            getChanges.Parameters["@to_lsn"].Value = toLsn;
-
             try
             {
-                var changesFound = false;
-                using (var rdr = getChanges.ExecuteReader())
+                try
                 {
-                    Operation op;
-                    while (rdr.Read())
+                    var changesFound = false;
+                    var observedLsn = new byte[10];
+                    await using (var rdr = await getChanges.ExecuteAsync(cancellationToken))
                     {
-                        changesFound = true;
-                        rdr.GetBytes(0, 0, fromLsn, 0, 10);
-                        op = (Operation)rdr.GetInt32(2);
+                        while (await rdr.ReadAsync(cancellationToken))
+                        {
+                            changesFound = true;
+                            rdr.GetBytes(0, 0, observedLsn, 0, 10);
+                            var op = (Operation)rdr.GetInt32(2);
 
-                        var changeEvent = new ChangeEvent { Operation = op };
-                        for (var f = 4; f < rdr.FieldCount; f++)
-                            changeEvent.Values.Add(rdr.GetName(f), rdr.GetValue(f));
+                            var changeEvent = new ChangeEvent { Operation = op, Timestamp = DateTime.UtcNow };
+                            for (var f = 4; f < rdr.FieldCount; f++)
+                                changeEvent.Values.Add(rdr.GetName(f), rdr.GetValue(f));
 
-                     
-                        _changeStream.OnNext(changeEvent);
-                        _logger.LogDebug("Event appended to stream for operation {operation} on {table}", changeEvent.Operation.ToString(), table_name);
+                            Publish(changeEvent);
+                            Logger.LogDebug("Event appended to stream for operation {operation} on {table}",
+                                changeEvent.Operation.ToString(), tableName);
+                        }
                     }
+
+                    if (changesFound)
+                        await journal.UpdateAsync(captureInstance, observedLsn, cancellationToken);
                 }
-                if (changesFound)
+                catch (SqlException ex) when (ex.Number == 313)
                 {
-                    getNextLsn.Parameters["@lastLsn"].Value = fromLsn;
-                    using (var rdr = getNextLsn.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                            rdr.GetBytes(0, 0, fromLsn, 0, 10);
-                    }
-                    updateLsn.Parameters["@lsn"].Value = fromLsn;
-                    updateLsn.ExecuteNonQuery();
-
+                    // expected. LSNs were outside the available range.
+                    Logger.LogDebug(
+                        "Log sequence numbers were outside the available range or invalid. This is usually because FromLsn was incremented to get the next change, and there are no changes, therefor FromLsn > ToLsn (max lsn) resulting in invalid input. SQL313.");
                 }
             }
-            catch (SqlException ex) when (ex.Number == 313)
-            { 
-                // expected
-                _logger.LogDebug("SQL313: FromLSN={fromLsn}, ToLSN={toLsn}", Convert.ToHexString(fromLsn), Convert.ToHexString(toLsn));
+            catch (Exception ex)
+            {
+                //Don't abend the thread.
+                Logger.LogError(ex, "An error occurred while observing SQl Server CDC. See exception for details.");
             }
-
-            await Task.Delay(500, _cancellationToken);
+            await Task.Delay(Settings.IntervalInMilliseconds, cancellationToken);
         }
-        await cn.CloseAsync();
-        cn.Dispose();
-        _changeStream.OnCompleted();
+        await sqlConnection.CloseAsync();
+        await sqlConnection.DisposeAsync();
+        await getChanges.DisposeAsync();
+        
+        Complete();
 
-        _logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} stopped.", table_name, schema_name);
+        Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} stopped.", tableName, schemaName);
+    }
+
+    void CnOnStateChange(object sender, StateChangeEventArgs e)
+    {
+        Logger.LogDebug($"Connection state changed from {e.OriginalState} to {e.CurrentState}");
+        if (e.CurrentState == ConnectionState.Broken)
+            ((SqlConnection)sender).Open();
     }
 }

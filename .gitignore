@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Rider
 .idea
+
+# draw.io
+.bkp

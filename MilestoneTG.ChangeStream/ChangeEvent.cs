@@ -2,7 +2,7 @@
 
 public class ChangeEvent
 {
-    public Guid EventId { get; set; }
+    public Guid EventId { get; } = Guid.NewGuid();
     
     public DateTime Timestamp { get; set; }
     public Operation Operation { get; set; }

@@ -2,5 +2,11 @@
 
 public interface IChangeSource
 {
-    IDisposable Subscribe(Action<ChangeEvent> onNext);
+    IObservable<ChangeEvent> ChangeStream { get; }
+
+    void Configure(SourceSettings settings);
+
+    void StartObserving();
+
+    void StopObserving();
 }
