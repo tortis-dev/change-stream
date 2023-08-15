@@ -11,7 +11,11 @@ sealed class GetChangesCommand : IDisposable, IAsyncDisposable
     {
         _getChanges = 
             new SqlCommand(
-                $"select * from cdc.fn_cdc_get_all_changes_{captureInstance}(milestone_cdc.fn_get_starting_lsn(@captureInstance), sys.fn_cdc_get_max_lsn(), N'all');", 
+                @$"declare @fromLsn binary(10), @toLsn binary(10);
+                            set @fromLsn = milestone_cdc.fn_get_starting_lsn(@captureInstance);
+                            set @toLsn = sys.fn_cdc_get_max_lsn();
+                            if (@fromLsn <= @toLsn)
+                                select * from cdc.fn_cdc_get_all_changes_{captureInstance}(@fromLsn, @toLsn, N'all');", 
                 connection);
         
         _getChanges.Parameters.Add("@captureInstance", SqlDbType.NVarChar, 128).Value = captureInstance;

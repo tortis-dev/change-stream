@@ -9,38 +9,40 @@ public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
         : base(connectionStringFactory, logger)
     {
     }
-
+    
     protected override async Task Worker(CancellationToken cancellationToken)
     {
         if (Settings == null || string.IsNullOrWhiteSpace(Settings.SchemaName) ||
             string.IsNullOrWhiteSpace(Settings.TableName))
             throw new ApplicationException("Not configured.");
-        
+
         string schemaName = Settings.SchemaName;
         string tableName = Settings.TableName;
         string captureInstance = $"{schemaName}_{tableName}";
-
-        var sqlConnection = new SqlConnection(ConnectionStringFactory.GetConnectionString(Settings.SourceName));
-        sqlConnection.StateChange += CnOnStateChange;
-        await sqlConnection.OpenAsync(cancellationToken);
         
-        var journal = new Journal(sqlConnection);
-        await journal.EnsureCreatedAsync(cancellationToken);
-        
+        SqlConnection sqlConnection = new SqlConnection();
         var getChanges = new GetChangesCommand(sqlConnection, captureInstance);
-
-        Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} started.", tableName, schemaName);
-        
-        while (!cancellationToken.IsCancellationRequested)
+        try
         {
-            try
+            sqlConnection.ConnectionString = ConnectionStringFactory.GetConnectionString(Settings.SourceName);
+            sqlConnection.StateChange += CnOnStateChange;
+            await sqlConnection.OpenAsync(cancellationToken);
+
+            var journal = new Journal(sqlConnection);
+            await journal.EnsureCreatedAsync(cancellationToken);
+
+            Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} started.", tableName,
+                schemaName);
+
+            var observedLsn = new byte[10];
+            bool changesFound;
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    var changesFound = false;
-                    var observedLsn = new byte[10];
                     await using (var rdr = await getChanges.ExecuteAsync(cancellationToken))
                     {
+                        changesFound = false;
                         while (await rdr.ReadAsync(cancellationToken))
                         {
                             changesFound = true;
@@ -66,21 +68,26 @@ public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
                     Logger.LogDebug(
                         "Log sequence numbers were outside the available range or invalid. This is usually because FromLsn was incremented to get the next change, and there are no changes, therefor FromLsn > ToLsn (max lsn) resulting in invalid input. SQL313.");
                 }
-            }
-            catch (Exception ex)
-            {
-                //Don't abend the thread.
-                Logger.LogError(ex, "An error occurred while observing SQl Server CDC. See exception for details.");
-            }
-            await Task.Delay(Settings.IntervalInMilliseconds, cancellationToken);
-        }
-        await sqlConnection.CloseAsync();
-        await sqlConnection.DisposeAsync();
-        await getChanges.DisposeAsync();
-        
-        Complete();
 
-        Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} stopped.", tableName, schemaName);
+                await Task.Delay(Settings.IntervalInMilliseconds, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogCritical(ex, "A fatal error occurred while observing SQl Server CDC changes. See exception for details.");
+            Error(ex);
+        }
+        finally
+        {
+            await sqlConnection.CloseAsync();
+            await sqlConnection.DisposeAsync();
+            await getChanges.DisposeAsync();
+
+            Complete();
+
+            Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} stopped.", tableName,
+                schemaName);
+        }
     }
 
     void CnOnStateChange(object sender, StateChangeEventArgs e)

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using MilestoneTG.ChangeStream;
 using MilestoneTG.ChangeStream.Server;
 using MilestoneTG.ChangeStream.Server.SqlServer;
