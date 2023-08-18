@@ -1,4 +1,4 @@
-﻿using MilestoneTG.ChangeStream.Server.SqlServer;
+﻿using MilestoneTG.ChangeStream.SqlServer;
 
 namespace MilestoneTG.ChangeStream.Server;
 
@@ -31,8 +31,18 @@ sealed class Propagator
             switch (_sourceSettings.SourceType.ToLowerInvariant())
             {
                 case "sqlserver":
-                    _source = _container.GetRequiredService<SqlServerChangeSource>();
+                {
+                    var settings = new SqlServerChangeSourceSettings
+                    {
+                        IntervalInMilliseconds = _sourceSettings.IntervalInMilliseconds,
+                        SchemaName = _sourceSettings.SchemaName,
+                        TableName = _sourceSettings.TableName,
+                        ConnectionString = _container.GetRequiredService<IConnectionStringFactory>().GetConnectionString(_sourceSettings.SourceName)
+                    };
+                    _source = new SqlServerChangeSource(settings,
+                        _container.GetRequiredService<ILogger<SqlServerChangeSource>>());
                     break;
+                }
                 default:
                     _source = (IChangeSource)_container.GetRequiredService(Type.GetType(_sourceSettings.SourceType)!);
                     break;
@@ -47,9 +57,7 @@ sealed class Propagator
                     _destination = (IDestination)_container.GetRequiredService(Type.GetType(_destinationSettings.DestinationType)!);
                     break;
             }
-            
-            _source.Configure(_sourceSettings);
-            
+           
             _source.ChangeStream.Subscribe(onNext: _destination.Publish, onError: OnError);
             _source.StartObserving();
         }

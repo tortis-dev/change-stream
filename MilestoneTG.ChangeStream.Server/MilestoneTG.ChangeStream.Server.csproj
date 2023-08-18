@@ -7,13 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
-    <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="170.18.0" />
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MilestoneTG.ChangeStream.SqlServer\MilestoneTG.ChangeStream.SqlServer.csproj" />
     <ProjectReference Include="..\MilestoneTG.ChangeStream\MilestoneTG.ChangeStream.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="SqlServer\" />
   </ItemGroup>
 
 </Project>

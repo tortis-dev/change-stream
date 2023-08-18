@@ -10,19 +10,24 @@ public abstract class ChangeSourceBase<TChangeSource> : IChangeSource
     
     Task? _cdcTask;
     
-    protected ChangeSourceBase(IConnectionStringFactory connectionStringFactory, ILogger<TChangeSource> logger)
+    protected ChangeSourceBase(ILogger<TChangeSource> logger)
     {
-        ConnectionStringFactory = connectionStringFactory;
         Logger = logger;
     }
 
     public IObservable<ChangeEvent> ChangeStream => _changeStream;
-    
-    protected ILogger<TChangeSource> Logger { get; }
 
-    protected IConnectionStringFactory ConnectionStringFactory { get; }
-    
-    protected SourceSettings? Settings { get; private set; }
+    public void StartObserving()
+    {
+        _cdcTask = Task.Factory.StartNew(() => Worker(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
+    }
+
+    public void StopObserving()
+    {
+        _cancellationTokenSource.Cancel();
+    }
+
+    protected ILogger<TChangeSource> Logger { get; }
 
     /// <summary>
     /// Publishes the event to the ChangeStream.
@@ -52,21 +57,5 @@ public abstract class ChangeSourceBase<TChangeSource> : IChangeSource
         Logger.LogTrace("Completing stream.");
         _changeStream.OnCompleted();
     }
-
-    public void StartObserving()
-    {
-        _cdcTask = Task.Factory.StartNew(() => Worker(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
-    }
-
-    public void StopObserving()
-    {
-        _cancellationTokenSource.Cancel();
-    }
-
-    public void Configure(SourceSettings settings)
-    {
-        Settings = settings;
-    }
-
     protected abstract Task Worker(CancellationToken cancellationToken);
 }

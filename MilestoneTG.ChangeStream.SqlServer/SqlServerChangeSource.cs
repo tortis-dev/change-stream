@@ -1,36 +1,42 @@
 ﻿using System.Data;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
-namespace MilestoneTG.ChangeStream.Server.SqlServer;
+namespace MilestoneTG.ChangeStream.SqlServer;
 
 public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
 {
-    public SqlServerChangeSource(IConnectionStringFactory connectionStringFactory, ILogger<SqlServerChangeSource> logger) 
-        : base(connectionStringFactory, logger)
+    readonly SqlServerChangeSourceSettings _settings;
+    public SqlServerChangeSource(SqlServerChangeSourceSettings settings, ILogger<SqlServerChangeSource> logger) 
+        : base(logger)
     {
+        logger.BeginScope("{schema}.{table}", settings.SchemaName, settings.TableName);
+        _settings = settings;
     }
     
     protected override async Task Worker(CancellationToken cancellationToken)
     {
-        if (Settings == null || string.IsNullOrWhiteSpace(Settings.SchemaName) ||
-            string.IsNullOrWhiteSpace(Settings.TableName))
+        if (_settings == null || string.IsNullOrWhiteSpace(_settings.SchemaName) ||
+            string.IsNullOrWhiteSpace(_settings.TableName))
             throw new ApplicationException("Not configured.");
 
-        string schemaName = Settings.SchemaName;
-        string tableName = Settings.TableName;
+        string schemaName = _settings.SchemaName;
+        string tableName = _settings.TableName;
         string captureInstance = $"{schemaName}_{tableName}";
         
         SqlConnection sqlConnection = new SqlConnection();
         var getChanges = new GetChangesCommand(sqlConnection, captureInstance);
         try
         {
-            sqlConnection.ConnectionString = ConnectionStringFactory.GetConnectionString(Settings.SourceName);
-            sqlConnection.StateChange += CnOnStateChange;
-            await sqlConnection.OpenAsync(cancellationToken);
+            sqlConnection.ConnectionString = _settings.ConnectionString;
+            sqlConnection.StateChange += OnSqlConnectionStateChange;
+            
 
             var journal = new Journal(sqlConnection);
+            await sqlConnection.OpenAsync(cancellationToken);
             await journal.EnsureCreatedAsync(cancellationToken);
-
+            await sqlConnection.CloseAsync();
+            
             Logger.LogInformation("SQL Server CDC monitoring for table {table} in schema {schema} started.", tableName,
                 schemaName);
 
@@ -40,6 +46,7 @@ public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
             {
                 try
                 {
+                    await sqlConnection.OpenAsync(cancellationToken);
                     await using (var rdr = await getChanges.ExecuteAsync(cancellationToken))
                     {
                         changesFound = false;
@@ -68,9 +75,22 @@ public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
                     Logger.LogDebug(
                         "Log sequence numbers were outside the available range or invalid. This is usually because FromLsn was incremented to get the next change, and there are no changes, therefor FromLsn > ToLsn (max lsn) resulting in invalid input. SQL313.");
                 }
+                catch (SqlException ex)
+                {
+                    Logger.LogError(ex, "SQL Server error: {error}", ex.Number);
+                }
+                finally
+                {
+                    await sqlConnection.CloseAsync();
+                }
 
-                await Task.Delay(Settings.IntervalInMilliseconds, cancellationToken);
+                await Task.Delay(_settings.IntervalInMilliseconds, cancellationToken);
             }
+        }
+        catch (TaskCanceledException)
+        {
+            Logger.LogInformation("Stopping SQL Server CDC monitoring for table {table} in schema {schema}.", tableName,
+                schemaName);
         }
         catch (Exception ex)
         {
@@ -90,10 +110,12 @@ public class SqlServerChangeSource : ChangeSourceBase<SqlServerChangeSource>
         }
     }
 
-    void CnOnStateChange(object sender, StateChangeEventArgs e)
+    void OnSqlConnectionStateChange(object sender, StateChangeEventArgs e)
     {
-        Logger.LogDebug($"Connection state changed from {e.OriginalState} to {e.CurrentState}");
         if (e.CurrentState == ConnectionState.Broken)
+        {
+            Logger.LogDebug($"Connection state changed from {e.OriginalState} to {e.CurrentState}");
             ((SqlConnection)sender).Open();
+        }
     }
 }
