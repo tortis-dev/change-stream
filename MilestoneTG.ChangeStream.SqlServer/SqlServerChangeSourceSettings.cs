@@ -1,9 +1,8 @@
 ﻿namespace MilestoneTG.ChangeStream.SqlServer;
 
-public class SqlServerChangeSourceSettings
+public static class SqlServerChangeSourceSettings
 {
-    public string ConnectionString { get; set; } = string.Empty;
-    public string SchemaName { get; set; } = string.Empty;
-    public string TableName { get; set; } = string.Empty;
-    public int IntervalInMilliseconds { get; set; } = 1000;
+    public static readonly string ConnectionStringName = "ConnectionStringName";
+    public static readonly string SchemaName = "SchemaName";
+    public static readonly string TableName = "TableName";
 }

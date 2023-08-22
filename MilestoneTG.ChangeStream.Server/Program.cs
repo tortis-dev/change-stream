@@ -1,5 +1,4 @@
 using MilestoneTG.ChangeStream;
-using MilestoneTG.ChangeStream.Server;
 using Serilog;
 using Serilog.Events;
 
@@ -12,13 +11,10 @@ var logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Logging.ClearProviders().AddSerilog(logger);
 
-builder.Services.AddControllers();
-builder.Services.AddHostedService<CdcServer>();
-builder.Services.AddSingleton<IConnectionStringFactory, AppSettingsConnectionStringFactory>();
 builder.Services.AddOptions();
-builder.Services.Configure<CdcSettings>(builder.Configuration.GetSection("cdc")); 
-var app = builder.Build();
 
-app.MapControllers();
+builder.Services.AddChangeStream(builder.Configuration);
+
+var app = builder.Build();
 
 app.Run();

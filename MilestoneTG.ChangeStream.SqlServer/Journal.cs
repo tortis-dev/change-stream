@@ -7,9 +7,9 @@ namespace MilestoneTG.ChangeStream.SqlServer;
 sealed class Journal
 {
     readonly SqlConnection _connection;
-    public Journal(SqlConnection connection)
+    public Journal(string connectionString)
     {
-        _connection = connection;
+        _connection = new SqlConnection(connectionString);
         _updateCommand = new SqlCommand(UPDATE_SQL, _connection);
         _updateCommand.Parameters.Add(new SqlParameter("@capture_instance_name", SqlDbType.NVarChar, 128));
         _updateCommand.Parameters.Add(new SqlParameter("@last_published_lsn", SqlDbType.Binary, 10));
@@ -30,18 +30,21 @@ sealed class Journal
         _updateCommand.Parameters["@capture_instance_name"].Value = captureInstanceName;
         _updateCommand.Parameters["@last_published_lsn"].Value = lastPublishedLsn;
 
+        await _connection.OpenAsync(cancellationToken);
         await _updateCommand.ExecuteNonQueryAsync(cancellationToken);
+        await _connection.CloseAsync();
     }
     
-    public async Task EnsureCreatedAsync(CancellationToken cancellationToken)
+    public void EnsureCreated()
     {
+        _connection.Open();
         var sqlServer = new Microsoft.SqlServer.Management.Smo.Server(new ServerConnection(_connection));
         const string schemaExistsSql = 
             @"if not exists (select 1 from sys.schemas s where s.name = 'milestone_cdc')
                  exec('create schema milestone_cdc');";
         
-        await using var ensureSchema = new SqlCommand(schemaExistsSql, _connection);
-        await ensureSchema.ExecuteNonQueryAsync(cancellationToken);
+        using var ensureSchema = new SqlCommand(schemaExistsSql, _connection);
+        ensureSchema.ExecuteNonQuery();
 
         const string tableExistsSql =
             @"if not exists (select 1 from sys.schemas s join sys.objects o on s.schema_id = o.schema_id where s.name = 'milestone_cdc' and o.name = 'cdc_journal')
@@ -50,8 +53,8 @@ sealed class Journal
                     last_published_lsn binary(10)
                 );";
 
-        await using var ensureTable = new SqlCommand(tableExistsSql, _connection);
-        await ensureTable.ExecuteNonQueryAsync(cancellationToken);
+        using var ensureTable = new SqlCommand(tableExistsSql, _connection);
+        ensureTable.ExecuteNonQuery();
 
         const string functionExists =
             @"if exists (select 1 from sys.schemas s join sys.objects o on s.schema_id = o.schema_id where s.name = 'milestone_cdc' and o.name = 'fn_get_starting_lsn')
@@ -76,5 +79,6 @@ sealed class Journal
             end";
         
         sqlServer.ConnectionContext.ExecuteNonQuery(functionExists);
+        _connection.Close();
     }
 }

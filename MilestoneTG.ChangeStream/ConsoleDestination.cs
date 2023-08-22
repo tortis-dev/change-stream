@@ -3,16 +3,24 @@ using System.Text.Json.Serialization;
 
 namespace MilestoneTG.ChangeStream;
 
-public class ConsoleDestination : IDestination
+sealed class ConsoleDestination : IDestination
 {
-    static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+    static readonly JsonSerializerOptions _jsonOptions;
 
     static ConsoleDestination()
     {
+        _jsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
     }
 
-    public void Publish(ChangeEvent changeEvent)
+    public ConsoleDestination(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory)
     {
+    }
+
+    public Task PublishAsync(ChangeEvent changeEvent)
+    {
+        //test error
+        //throw new Exception("This is a test of the emergency broadcast system.");
         Console.WriteLine(JsonSerializer.Serialize(changeEvent, _jsonOptions));
+        return Task.CompletedTask;
     }
 }

@@ -2,5 +2,5 @@
 
 public interface IDestination
 {
-    void Publish(ChangeEvent changeEvent);
+    Task PublishAsync(ChangeEvent changeEvent);
 }
