@@ -22,7 +22,7 @@ sealed class PropagatorFactory
         
         var destinationParts = streamSettings.Destination.DestinationType.Split(',');
         var destinationType = Assembly.Load(destinationParts[1]).GetType(destinationParts[0]);
-        var destination = (IDestination)Activator.CreateInstance(destinationType, args: new object[]{streamSettings.Source.Properties, _connectionStringFactory});
+        var destination = (IDestination)Activator.CreateInstance(destinationType, args: new object[]{streamSettings.Destination.Properties, _connectionStringFactory});
 
         return new Propagator(source, destination, streamSettings, _logger);
     }

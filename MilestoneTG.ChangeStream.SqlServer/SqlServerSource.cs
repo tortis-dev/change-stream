@@ -6,6 +6,10 @@ namespace MilestoneTG.ChangeStream.SqlServer;
 
 public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
 {
+    static readonly string ConnectionStringName = "ConnectionStringName";
+    static readonly string SchemaName = "SchemaName";
+    static readonly string TableName = "TableName";
+    
     readonly SqlConnection _sqlConnection;
     readonly GetChangesCommand _getChanges;
     readonly Journal _journal;
@@ -16,8 +20,8 @@ public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
 
     public SqlServerSource(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory)
     {
-        _captureInstance = $"{settings[SqlServerChangeSourceSettings.SchemaName]}_{settings[SqlServerChangeSourceSettings.TableName]}";
-        var connectionString = connectionStringFactory.GetConnectionString((string)settings[SqlServerChangeSourceSettings.ConnectionStringName]);
+        _captureInstance = $"{settings[SchemaName]}_{settings[TableName]}";
+        var connectionString = connectionStringFactory.GetConnectionString((string)settings[ConnectionStringName]);
         _sqlConnection = new SqlConnection(connectionString);
         _getChanges = new GetChangesCommand(_sqlConnection, _captureInstance);
         _journal = new Journal(connectionString);

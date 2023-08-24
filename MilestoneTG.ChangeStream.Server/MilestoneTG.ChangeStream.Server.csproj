@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MilestoneTG.ChangeStream.RabbitMQ\MilestoneTG.ChangeStream.RabbitMQ.csproj" />
     <ProjectReference Include="..\MilestoneTG.ChangeStream.SqlServer\MilestoneTG.ChangeStream.SqlServer.csproj" />
     <ProjectReference Include="..\MilestoneTG.ChangeStream\MilestoneTG.ChangeStream.csproj" />
   </ItemGroup>
