@@ -1,26 +1,35 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace MilestoneTG.ChangeStream;
 
-sealed class ConsoleDestination : IDestination
+[UsedImplicitly]
+public sealed class ConsoleDestination : IDestination
 {
-    static readonly JsonSerializerOptions _jsonOptions;
+    static readonly JsonSerializerOptions JsonOptions;
 
     static ConsoleDestination()
     {
-        _jsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+        JsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
     }
 
-    public ConsoleDestination(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory)
+    public ConsoleDestination(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
     }
 
-    public Task PublishAsync(ChangeEvent changeEvent)
+    public Task PublishAsync(ChangeEvent changeEvent, CancellationToken cancellationToken)
     {
-        //test error
-        //throw new Exception("This is a test of the emergency broadcast system.");
-        Console.WriteLine(JsonSerializer.Serialize(changeEvent, _jsonOptions));
+        Console.WriteLine(JsonSerializer.Serialize(changeEvent, JsonOptions));
         return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 }

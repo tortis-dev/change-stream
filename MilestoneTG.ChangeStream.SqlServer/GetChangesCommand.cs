@@ -1,14 +1,20 @@
 ﻿using System.Data;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace MilestoneTG.ChangeStream.SqlServer;
 
 sealed class GetChangesCommand : IDisposable, IAsyncDisposable
 {
     readonly SqlCommand _getChanges;
+    readonly ILogger<GetChangesCommand> _logger;
+    readonly string _captureInstance;
 
-    public GetChangesCommand(SqlConnection connection, string captureInstance)
+    public GetChangesCommand(SqlConnection connection, string captureInstance, ILoggerFactory loggerFactory)
     {
+        _captureInstance = captureInstance;
+        _logger = loggerFactory.CreateLogger<GetChangesCommand>();
+        
         _getChanges = 
             new SqlCommand(
                 @$"declare @fromLsn binary(10), @toLsn binary(10);
@@ -21,9 +27,17 @@ sealed class GetChangesCommand : IDisposable, IAsyncDisposable
         _getChanges.Parameters.Add("@captureInstance", SqlDbType.NVarChar, 128).Value = captureInstance;
     }
 
-    public async Task<SqlDataReader> ExecuteAsync(CancellationToken cancellationToken)
+    public async Task<SqlDataReader?> ExecuteAsync(CancellationToken cancellationToken)
     {
-        return await _getChanges.ExecuteReaderAsync(cancellationToken);
+        try
+        {
+            return await _getChanges.ExecuteReaderAsync(cancellationToken);
+        }
+        catch (SqlException e) when (e.ErrorCode == 313)
+        {
+            _logger.LogDebug(e, "SQL Error 313 while trying to fetch changes for capture instance {captureInstance} This is expected.", _captureInstance);
+            return null;
+        }
     }
 
     public void Dispose()

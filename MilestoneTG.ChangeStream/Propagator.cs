@@ -27,7 +27,7 @@ sealed class Propagator : BackgroundService
             .CircuitBreakerAsync(
                 1,
                 streamSettings.CircuitBreakerTimeout,
-                onBreak: (exception, span) => _logger.LogWarning(exception, "Circuit Breaker tripped."),
+                onBreak: (exception, _) => _logger.LogWarning(exception, "Circuit Breaker tripped."),
                 onReset: () => { })
             .WrapAsync(Policy.Handle<Exception>().WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(100) }));
     }
@@ -42,8 +42,8 @@ sealed class Propagator : BackgroundService
                 {
                     try
                     {
-                        await foreach (var change in _source.GetChanges(stoppingToken))
-                            await _destination.PublishAsync(change);
+                        await foreach (var change in _source.GetChanges(token))
+                            await _destination.PublishAsync(change, token);
                     }
                     catch (TaskCanceledException)
                     {
@@ -63,5 +63,12 @@ sealed class Propagator : BackgroundService
 
             await Task.Delay(_streamSettings.CheckIntervalInMilliseconds, stoppingToken);
         }
+    }
+
+    public override void Dispose()
+    {
+        _source.Dispose();
+        _destination.Dispose();
+        base.Dispose();
     }
 }

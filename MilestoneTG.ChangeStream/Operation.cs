@@ -1,9 +1,11 @@
-﻿namespace MilestoneTG.ChangeStream;
+﻿// ReSharper disable InconsistentNaming
+namespace MilestoneTG.ChangeStream;
 
+[PublicAPI]
 public enum Operation
 {
-    delete     = 1,
-    create     = 2,
-    update_old = 3,
-    update_new = 4
+    DELETE = 1,
+    CREATE = 2,
+    OLD    = 3,
+    UPDATE = 4
 }

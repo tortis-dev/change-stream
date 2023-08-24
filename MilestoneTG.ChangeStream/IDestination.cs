@@ -1,6 +1,7 @@
 ﻿namespace MilestoneTG.ChangeStream;
 
-public interface IDestination
+[PublicAPI]
+public interface IDestination : IDisposable
 {
-    Task PublishAsync(ChangeEvent changeEvent);
+    Task PublishAsync(ChangeEvent changeEvent, CancellationToken cancellationToken);
 }

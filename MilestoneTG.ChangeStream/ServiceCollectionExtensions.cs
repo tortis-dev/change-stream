@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MilestoneTG.ChangeStream;
 
+[PublicAPI]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddChangeStream(this IServiceCollection services, IConfiguration configuration)

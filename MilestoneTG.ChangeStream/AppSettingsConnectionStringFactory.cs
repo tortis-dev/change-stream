@@ -2,6 +2,7 @@
 
 namespace MilestoneTG.ChangeStream;
 
+[UsedImplicitly]
 sealed class AppSettingsConnectionStringFactory : IConnectionStringFactory
 {
     readonly IConfiguration _configuration;

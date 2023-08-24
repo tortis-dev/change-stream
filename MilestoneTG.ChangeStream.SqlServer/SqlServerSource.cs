@@ -1,10 +1,15 @@
 ﻿using System.Data;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace MilestoneTG.ChangeStream.SqlServer;
 
-public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
+[PublicAPI]
+[UsedImplicitly]
+public class SqlServerSource : ISource
 {
     static readonly string ConnectionStringName = "ConnectionStringName";
     static readonly string SchemaName = "SchemaName";
@@ -16,14 +21,14 @@ public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
     readonly string _captureInstance;
     readonly byte[] _observedLsn = new byte[10];
     readonly byte[] _observedSeq = new byte[10];
-    readonly byte[] _padding = new byte[6];
+    readonly byte[] _maskBuffer = new byte[8];
 
-    public SqlServerSource(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory)
+    public SqlServerSource(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
         _captureInstance = $"{settings[SchemaName]}_{settings[TableName]}";
         var connectionString = connectionStringFactory.GetConnectionString((string)settings[ConnectionStringName]);
         _sqlConnection = new SqlConnection(connectionString);
-        _getChanges = new GetChangesCommand(_sqlConnection, _captureInstance);
+        _getChanges = new GetChangesCommand(_sqlConnection, _captureInstance, loggerFactory);
         _journal = new Journal(connectionString);
         _journal.EnsureCreated();
     }
@@ -34,6 +39,9 @@ public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
             await _sqlConnection.OpenAsync(cancellationToken);
         
         await using var rdr = await _getChanges.ExecuteAsync(cancellationToken);
+        if (rdr is null)
+            yield break;
+        
         while (await rdr.ReadAsync(cancellationToken))
         {
             rdr.GetBytes(0, 0, _observedLsn, 0, 10);
@@ -41,14 +49,23 @@ public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
 
             var changeEvent = new ChangeEvent
             {
-                ChangeId = new Guid(_padding.Concat(_observedLsn).ToArray()),
-                OperationSequence = new Guid(_padding.Concat(_observedSeq).ToArray()),
+                EventId = BitConverter.ToString(_observedLsn.Concat(_observedSeq).ToArray()).Replace("-",""),
                 Operation = (Operation)rdr.GetInt32(2), 
                 Timestamp = DateTime.UtcNow
             };
             
+            rdr.GetBytes(3, 0, _maskBuffer, 0, 8);
+
+            var mask = new BigInteger(_maskBuffer);
             for (var f = 4; f < rdr.FieldCount; f++)
-                changeEvent.Values.Add(rdr.GetName(f), rdr.GetValue(f));
+            {
+                var bit = BigInteger.Pow(2, f-4);
+                var changed = (mask & bit) != 0;
+                if (changed)
+                    changeEvent.Changes.Add(rdr.GetName(f), rdr.GetValue(f));
+                
+                changeEvent.Entity.Add(rdr.GetName(f), rdr.GetValue(f));
+            }
             
             yield return changeEvent;
 
@@ -62,11 +79,5 @@ public class SqlServerSource : ISource, IDisposable, IAsyncDisposable
     {
         _sqlConnection.Dispose();
         _getChanges.Dispose();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _sqlConnection.DisposeAsync();
-        await _getChanges.DisposeAsync();
     }
 }

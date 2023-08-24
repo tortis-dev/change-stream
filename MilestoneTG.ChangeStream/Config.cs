@@ -1,10 +1,12 @@
 ﻿namespace MilestoneTG.ChangeStream;
 
+[PublicAPI]
 public class CdcSettings
 {
     public StreamSettings[] Streams { get; set; } = Array.Empty<StreamSettings>();
 }
 
+[PublicAPI]
 public class StreamSettings
 {
     public TimeSpan CircuitBreakerTimeout { get; set; } = TimeSpan.FromMinutes(5);
@@ -15,6 +17,7 @@ public class StreamSettings
     public DestinationSettings Destination { get; set; } = new();
 }
 
+[PublicAPI]
 public class SourceSettings
 {
     public string SourceName { get; set; } = string.Empty;
@@ -22,6 +25,7 @@ public class SourceSettings
     public Dictionary<string, object> Properties { get; } = new();
 }
 
+[PublicAPI]
 public class DestinationSettings
 {
     public string DestinationName { get; set; } = string.Empty;

@@ -1,6 +1,7 @@
 ﻿namespace MilestoneTG.ChangeStream;
 
-public interface ISource
+[PublicAPI]
+public interface ISource : IDisposable
 {
     IAsyncEnumerable<ChangeEvent> GetChanges(CancellationToken cancellationToken);
 }

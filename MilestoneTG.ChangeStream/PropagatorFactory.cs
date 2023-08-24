@@ -6,24 +6,37 @@ namespace MilestoneTG.ChangeStream;
 sealed class PropagatorFactory
 {
     readonly IConnectionStringFactory _connectionStringFactory;
+    readonly ILoggerFactory _loggerFactory;
     readonly ILogger<Propagator> _logger;
 
-    public PropagatorFactory(IConnectionStringFactory connectionStringFactory, ILogger<Propagator> logger)
+    public PropagatorFactory(IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
         _connectionStringFactory = connectionStringFactory;
-        _logger = logger;
+        _loggerFactory = loggerFactory;
+        _logger = loggerFactory.CreateLogger<Propagator>();
     }
 
     public Propagator CreatePropagator(StreamSettings streamSettings)
     {
         var sourceParts = streamSettings.Source.SourceType.Split(',');
         var sourceType = Assembly.Load(sourceParts[1]).GetType(sourceParts[0]);
-        var source = (ISource)Activator.CreateInstance(sourceType, args: new object[]{streamSettings.Source.Properties, _connectionStringFactory});
+
+        if (sourceType is null)
+            throw new TypeLoadException($"Change source implemented by type {streamSettings.Source.SourceType} not found.");
+        
+        var source = Activator.CreateInstance(sourceType, args: new object[]{streamSettings.Source.Properties, _connectionStringFactory, _loggerFactory}) as ISource;
+        if (source is null)
+            throw new TypeLoadException($"Unable to create instance of type {streamSettings.Source.SourceType}.");
         
         var destinationParts = streamSettings.Destination.DestinationType.Split(',');
         var destinationType = Assembly.Load(destinationParts[1]).GetType(destinationParts[0]);
-        var destination = (IDestination)Activator.CreateInstance(destinationType, args: new object[]{streamSettings.Destination.Properties, _connectionStringFactory});
-
+        if (destinationType is null)
+            throw new TypeLoadException($"Publish destination implemented by type {streamSettings.Destination.DestinationType} not found.");
+        
+        var destination = Activator.CreateInstance(destinationType, args: new object[]{streamSettings.Destination.Properties, _connectionStringFactory, _loggerFactory}) as IDestination;
+        if (destination is null)
+            throw new TypeLoadException($"Unable to create instance of type {streamSettings.Destination.DestinationType}.");
+        
         return new Propagator(source, destination, streamSettings, _logger);
     }
 }
