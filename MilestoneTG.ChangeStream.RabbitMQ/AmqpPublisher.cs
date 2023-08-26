@@ -10,8 +10,8 @@ namespace MilestoneTG.ChangeStream.RabbitMQ;
 [UsedImplicitly]
 public sealed class AmqpPublisher : IDestination
 {
-    readonly IConnection _connection;
-    readonly string _topicName;
+    IConnection _connection;
+    string _topicName;
     
     static readonly string ConnectionStringName = "ConnectionStringName";
     static readonly string TopicName = "TopicName";
@@ -23,7 +23,7 @@ public sealed class AmqpPublisher : IDestination
         JsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
     }
     
-    public AmqpPublisher(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
+    public void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
         var connectionString = connectionStringFactory.GetConnectionString((string)settings[ConnectionStringName]);
         var factory = new ConnectionFactory

@@ -20,5 +20,4 @@
     <ProjectReference Include="..\MilestoneTG.ChangeStream\MilestoneTG.ChangeStream.csproj" />
   </ItemGroup>
 
-
 </Project>

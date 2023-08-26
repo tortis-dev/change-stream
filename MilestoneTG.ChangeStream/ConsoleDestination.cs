@@ -14,8 +14,9 @@ public sealed class ConsoleDestination : IDestination
         JsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
     }
 
-    public ConsoleDestination(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
+    public void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
+        
     }
 
     public Task PublishAsync(ChangeEvent changeEvent, CancellationToken cancellationToken)

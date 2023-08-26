@@ -9,21 +9,21 @@ namespace MilestoneTG.ChangeStream.SqlServer;
 
 [PublicAPI]
 [UsedImplicitly]
-public class SqlServerSource : ISource
+public sealed class SqlServerSource : ISource
 {
     static readonly string ConnectionStringName = "ConnectionStringName";
     static readonly string SchemaName = "SchemaName";
     static readonly string TableName = "TableName";
-    
-    readonly SqlConnection _sqlConnection;
-    readonly GetChangesCommand _getChanges;
-    readonly Journal _journal;
-    readonly string _captureInstance;
-    readonly byte[] _observedLsn = new byte[10];
-    readonly byte[] _observedSeq = new byte[10];
-    readonly byte[] _maskBuffer = new byte[8];
 
-    public SqlServerSource(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
+    SqlConnection? _sqlConnection;
+    GetChangesCommand? _getChanges;
+    Journal? _journal;
+    string? _captureInstance;
+    byte[] _observedLsn = new byte[10];
+    byte[] _observedSeq = new byte[10];
+    byte[] _maskBuffer = new byte[8];
+    
+    public void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
         _captureInstance = $"{settings[SchemaName]}_{settings[TableName]}";
         var connectionString = connectionStringFactory.GetConnectionString((string)settings[ConnectionStringName]);
@@ -32,9 +32,12 @@ public class SqlServerSource : ISource
         _journal = new Journal(connectionString);
         _journal.EnsureCreated();
     }
-    
+
     public async IAsyncEnumerable<ChangeEvent> GetChanges([EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        if (_sqlConnection is null || _getChanges is null || _journal is null || string.IsNullOrWhiteSpace(_captureInstance))
+            throw new InvalidOperationException("The source is not configured. Make sure Configure() is called before calling GetChanges().");
+        
         if (_sqlConnection.State == ConnectionState.Closed)
             await _sqlConnection.OpenAsync(cancellationToken);
         
@@ -77,7 +80,7 @@ public class SqlServerSource : ISource
 
     public void Dispose()
     {
-        _sqlConnection.Dispose();
-        _getChanges.Dispose();
+        _sqlConnection?.Dispose();
+        _getChanges?.Dispose();
     }
 }
