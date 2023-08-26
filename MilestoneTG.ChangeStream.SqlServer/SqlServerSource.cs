@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
@@ -11,9 +10,9 @@ namespace MilestoneTG.ChangeStream.SqlServer;
 [UsedImplicitly]
 public sealed class SqlServerSource : ISource
 {
-    static readonly string ConnectionStringName = "ConnectionStringName";
-    static readonly string SchemaName = "SchemaName";
-    static readonly string TableName = "TableName";
+    static readonly string CONNECTION_STRING_NAME = "ConnectionStringName";
+    static readonly string SCHEMA_NAME = "SchemaName";
+    static readonly string TABLE_NAME = "TableName";
 
     SqlConnection? _sqlConnection;
     GetChangesCommand? _getChanges;
@@ -25,8 +24,8 @@ public sealed class SqlServerSource : ISource
     
     public void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
-        _captureInstance = $"{settings[SchemaName]}_{settings[TableName]}";
-        var connectionString = connectionStringFactory.GetConnectionString((string)settings[ConnectionStringName]);
+        _captureInstance = $"{settings[SCHEMA_NAME]}_{settings[TABLE_NAME]}";
+        var connectionString = connectionStringFactory.GetConnectionString((string)settings[CONNECTION_STRING_NAME]);
         _sqlConnection = new SqlConnection(connectionString);
         _getChanges = new GetChangesCommand(_sqlConnection, _captureInstance, loggerFactory);
         _journal = new Journal(connectionString);
