@@ -23,9 +23,8 @@ sealed class PropagatorFactory
 
         if (sourceType is null)
             throw new TypeLoadException($"Change source implemented by type {streamSettings.Source.SourceType} not found.");
-        
-        var source = Activator.CreateInstance(sourceType) as ISource;
-        if (source is null)
+
+        if (Activator.CreateInstance(sourceType) is not ISource source)
             throw new TypeLoadException($"Unable to create instance of type {streamSettings.Source.SourceType}.");
 
         try
@@ -41,9 +40,8 @@ sealed class PropagatorFactory
         var destinationType = Assembly.Load(destinationParts[1]).GetType(destinationParts[0]);
         if (destinationType is null)
             throw new TypeLoadException($"Publish destination implemented by type {streamSettings.Destination.DestinationType} not found.");
-        
-        var destination = Activator.CreateInstance(destinationType) as IDestination;
-        if (destination is null)
+
+        if (Activator.CreateInstance(destinationType) is not IDestination destination)
             throw new TypeLoadException($"Unable to create instance of type {streamSettings.Destination.DestinationType}.");
 
         try

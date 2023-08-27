@@ -7,11 +7,11 @@ namespace MilestoneTG.ChangeStream;
 [UsedImplicitly]
 public sealed class ConsoleDestination : IDestination
 {
-    static readonly JsonSerializerOptions JsonOptions;
+    static readonly JsonSerializerOptions JSON_OPTIONS;
 
     static ConsoleDestination()
     {
-        JsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+        JSON_OPTIONS = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
     }
 
     public void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
@@ -21,7 +21,7 @@ public sealed class ConsoleDestination : IDestination
 
     public Task PublishAsync(ChangeEvent changeEvent, CancellationToken cancellationToken)
     {
-        Console.WriteLine(JsonSerializer.Serialize(changeEvent, JsonOptions));
+        Console.WriteLine(JsonSerializer.Serialize(changeEvent, JSON_OPTIONS));
         return Task.CompletedTask;
     }
 
