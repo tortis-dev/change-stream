@@ -32,6 +32,8 @@ public class SqlServerSource : ISource
         _journal = new Journal(connectionString);
         _journal.EnsureCreated();
     }
+
+    static readonly string EventIdFormat = new String('0', 20);
     
     public async IAsyncEnumerable<ChangeEvent> GetChanges([EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -49,7 +51,7 @@ public class SqlServerSource : ISource
 
             var changeEvent = new ChangeEvent
             {
-                EventId = BitConverter.ToString(_observedLsn.Concat(_observedSeq).ToArray()).Replace("-",""),
+                EventId = new BigInteger(_observedLsn.Concat(_observedSeq).ToArray()).ToString(EventIdFormat),
                 Operation = (Operation)rdr.GetInt32(2), 
                 Timestamp = DateTime.UtcNow
             };
