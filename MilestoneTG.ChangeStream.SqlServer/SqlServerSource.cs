@@ -33,7 +33,14 @@ public class SqlServerSource : ISource
         _journal.EnsureCreated();
     }
 
-    static readonly string EventIdFormat = new String('0', 20);
+    static readonly string EventIdFormat = new String('0', 50);
+    static readonly byte[] SignByte = { (byte)0x00 };
+
+    const int LsnPosition = 0;
+    const int SeqPosition = 1;
+    const int OperationPosition = 2;
+    const int ChangeMaskPosition = 3;
+    const int FirstFieldPosition = 4;
     
     public async IAsyncEnumerable<ChangeEvent> GetChanges([EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -46,20 +53,20 @@ public class SqlServerSource : ISource
         
         while (await rdr.ReadAsync(cancellationToken))
         {
-            rdr.GetBytes(0, 0, _observedLsn, 0, 10);
-            rdr.GetBytes(1, 0, _observedSeq, 0, 10);
+            rdr.GetBytes(LsnPosition, 0, _observedLsn, 0, 10);
+            rdr.GetBytes(SeqPosition, 0, _observedSeq, 0, 10);
 
             var changeEvent = new ChangeEvent
             {
-                EventId = new BigInteger(_observedLsn.Concat(_observedSeq).ToArray()).ToString(EventIdFormat),
-                Operation = (Operation)rdr.GetInt32(2), 
+                EventId = new BigInteger(_observedLsn.Concat(_observedSeq).Concat(SignByte).ToArray()).ToString(EventIdFormat),
+                Operation = (Operation)rdr.GetInt32(OperationPosition), 
                 Timestamp = DateTime.UtcNow
             };
             
             rdr.GetBytes(3, 0, _maskBuffer, 0, 8);
 
             var mask = new BigInteger(_maskBuffer);
-            for (var f = 4; f < rdr.FieldCount; f++)
+            for (var f = FirstFieldPosition; f < rdr.FieldCount; f++)
             {
                 var bit = BigInteger.Pow(2, f-4);
                 var changed = (mask & bit) != 0;
