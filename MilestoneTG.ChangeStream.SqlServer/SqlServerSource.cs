@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
