@@ -10,34 +10,37 @@ namespace MilestoneTG.ChangeStream.RabbitMQ;
 [UsedImplicitly]
 public sealed class AmqpPublisher : IDestination
 {
-    readonly IConnection _connection;
-    readonly string _topicName;
+    IConnection? _connection;
+    string? _topicName;
     
-    static readonly string ConnectionStringName = "ConnectionStringName";
-    static readonly string TopicName = "TopicName";
+    static readonly string CONNECTION_STRING_NAME = "ConnectionStringName";
+    static readonly string TOPIC_NAME = "TopicName";
     
-    static readonly JsonSerializerOptions JsonOptions;
+    static readonly JsonSerializerOptions JSON_OPTIONS;
 
     static AmqpPublisher()
     {
-        JsonOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+        JSON_OPTIONS = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
     }
     
-    public AmqpPublisher(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
+    public void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory)
     {
-        var connectionString = connectionStringFactory.GetConnectionString((string)settings[ConnectionStringName]);
+        var connectionString = connectionStringFactory.GetConnectionString((string)settings[CONNECTION_STRING_NAME]);
         var factory = new ConnectionFactory
         {
             Uri = new Uri(connectionString)
         };
         _connection = factory.CreateConnection();
-        _topicName = (string)settings[TopicName];
+        _topicName = (string)settings[TOPIC_NAME];
     }
 
     public async Task PublishAsync(ChangeEvent changeEvent, CancellationToken cancellationToken = default)
     {
+        if (_connection is null)
+            throw new InvalidOperationException("Publisher is not configured. Be sure to call Configure() before calling Publish()");
+        
         using var buffer = new MemoryStream();
-        await JsonSerializer.SerializeAsync(buffer, changeEvent, JsonOptions, cancellationToken);
+        await JsonSerializer.SerializeAsync(buffer, changeEvent, JSON_OPTIONS, cancellationToken);
 
         if (cancellationToken.IsCancellationRequested)
             return;
@@ -48,6 +51,6 @@ public sealed class AmqpPublisher : IDestination
 
     public void Dispose()
     {
-        _connection.Dispose();
+        _connection?.Dispose();
     }
 }
