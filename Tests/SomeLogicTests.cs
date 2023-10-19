@@ -39,11 +39,11 @@ public class SomeLogicTests
     }
 
     [Fact]
-    public async Task Enianness()
+    public async Task Endianness()
     {
         var connectionStringFactory = new TestConnectionStringFactory();
         var cn = new SqlConnection(connectionStringFactory.GetConnectionString("test"));
-        var cmd = new SqlCommand("insert into person (name) values ('Testy McTest')", cn);
+        var cmd = new SqlCommand("insert into person (first_name, last_name) values ('Testy','McTest')", cn);
 
         await cn.OpenAsync();
         var tx = cn.BeginTransaction();
@@ -98,7 +98,7 @@ public class SomeLogicTests
     {
         var connectionStringFactory = new TestConnectionStringFactory();
         var cn = new SqlConnection(connectionStringFactory.GetConnectionString("test"));
-        var cmd = new SqlCommand("insert into person (name) values ('Testy McTest')", cn);
+        var cmd = new SqlCommand("insert into person (first_name, last_name) values ('Testy','McTest')", cn);
 
         await cn.OpenAsync();
         var tx = cn.BeginTransaction();
