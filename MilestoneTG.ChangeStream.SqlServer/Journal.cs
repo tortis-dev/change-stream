@@ -4,7 +4,7 @@ using Microsoft.SqlServer.Management.Common;
 
 namespace MilestoneTG.ChangeStream.SqlServer;
 
-sealed class Journal
+sealed class Journal : IDisposable
 {
     readonly SqlConnection _connection;
     public Journal(string connectionString)
@@ -80,5 +80,11 @@ sealed class Journal
         
         sqlServer.ConnectionContext.ExecuteNonQuery(functionExists);
         _connection.Close();
+    }
+    
+    public void Dispose()
+    {
+        _connection.Dispose();
+        _updateCommand.Dispose();
     }
 }
