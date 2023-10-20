@@ -1,5 +1,5 @@
 ﻿// ReSharper disable InconsistentNaming
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 [PublicAPI]
 public enum Operation

@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MilestoneTG.ChangeStream.RabbitMQ;
+namespace Tortis.ChangeStream.RabbitMQ;
 
 [PublicAPI]
 [UsedImplicitly]

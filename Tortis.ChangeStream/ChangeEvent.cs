@@ -1,4 +1,4 @@
-﻿namespace MilestoneTG.ChangeStream;
+﻿namespace Tortis.ChangeStream;
 
 /// <summary>
 /// Represents a change to an entity from a change source.

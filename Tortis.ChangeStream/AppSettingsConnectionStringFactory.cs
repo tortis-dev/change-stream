@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 [UsedImplicitly]
 sealed class AppSettingsConnectionStringFactory : IConnectionStringFactory

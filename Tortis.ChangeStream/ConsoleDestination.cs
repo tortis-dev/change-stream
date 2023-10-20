@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 [UsedImplicitly]
 public sealed class ConsoleDestination : IDestination

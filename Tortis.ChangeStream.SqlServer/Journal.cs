@@ -2,7 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Management.Common;
 
-namespace MilestoneTG.ChangeStream.SqlServer;
+namespace Tortis.ChangeStream.SqlServer;
 
 sealed class Journal : IDisposable
 {

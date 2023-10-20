@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 [PublicAPI]
 public static class ServiceCollectionExtensions

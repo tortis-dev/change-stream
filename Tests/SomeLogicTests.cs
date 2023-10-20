@@ -4,8 +4,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IdentityModel.Tokens;
-using MilestoneTG.ChangeStream;
-using MilestoneTG.ChangeStream.SqlServer;
+using Tortis.ChangeStream;
+using Tortis.ChangeStream.SqlServer;
 using Xunit.Abstractions;
 
 namespace Tests;

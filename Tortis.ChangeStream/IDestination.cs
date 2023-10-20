@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 [PublicAPI]
-public interface ISource : IDisposable
+public interface IDestination : IDisposable
 {
     void Configure(Dictionary<string, object> settings, IConnectionStringFactory connectionStringFactory, ILoggerFactory loggerFactory);
     
-    IAsyncEnumerable<ChangeEvent> GetChanges(CancellationToken cancellationToken);
+    Task PublishAsync(ChangeEvent changeEvent, CancellationToken cancellationToken);
 }

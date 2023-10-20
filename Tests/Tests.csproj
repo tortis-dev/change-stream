@@ -27,8 +27,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MilestoneTG.ChangeStream.SqlServer\MilestoneTG.ChangeStream.SqlServer.csproj" />
-      <ProjectReference Include="..\MilestoneTG.ChangeStream\MilestoneTG.ChangeStream.csproj" />
+      <ProjectReference Include="..\Tortis.ChangeStream.SqlServer\Tortis.ChangeStream.SqlServer.csproj" />
+      <ProjectReference Include="..\Tortis.ChangeStream\Tortis.ChangeStream.csproj" />
     </ItemGroup>
 
 </Project>

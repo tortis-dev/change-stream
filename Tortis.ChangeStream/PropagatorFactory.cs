@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.Logging;
 
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 sealed class PropagatorFactory
 {

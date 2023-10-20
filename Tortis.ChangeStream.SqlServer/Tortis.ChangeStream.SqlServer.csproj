@@ -22,7 +22,7 @@
     <PackageReference Include="System.Runtime.Numerics" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MilestoneTG.ChangeStream\MilestoneTG.ChangeStream.csproj" />
+    <ProjectReference Include="..\Tortis.ChangeStream\Tortis.ChangeStream.csproj" />
   </ItemGroup>
 
 </Project>

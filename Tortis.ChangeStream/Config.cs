@@ -1,4 +1,4 @@
-﻿namespace MilestoneTG.ChangeStream;
+﻿namespace Tortis.ChangeStream;
 
 [PublicAPI]
 public class CdcSettings

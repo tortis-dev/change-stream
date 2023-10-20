@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MilestoneTG.ChangeStream\MilestoneTG.ChangeStream.csproj" />
+      <ProjectReference Include="..\Tortis.ChangeStream\Tortis.ChangeStream.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -2,7 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
-namespace MilestoneTG.ChangeStream.SqlServer;
+namespace Tortis.ChangeStream.SqlServer;
 
 sealed class GetChangesCommand : IDisposable, IAsyncDisposable
 {

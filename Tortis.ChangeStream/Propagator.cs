@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
 
-namespace MilestoneTG.ChangeStream;
+namespace Tortis.ChangeStream;
 
 /// <summary>
 /// Creates and manages Source/Destination instance pairs and their lifecycle.
