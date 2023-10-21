@@ -13,7 +13,7 @@ public sealed class AmqpPublisher : IDestination
     IConnection? _connection;
     string? _topicName;
     
-    static readonly string CONNECTION_STRING_NAME = "ConnectionStringName";
+    static readonly string CONNECTION_STRING_NAME = "ConnectionStringKey";
     static readonly string TOPIC_NAME = "TopicName";
     
     static readonly JsonSerializerOptions JSON_OPTIONS;

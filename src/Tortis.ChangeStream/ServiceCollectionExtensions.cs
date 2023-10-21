@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PropagatorFactory>();
 
         var settings = new CdcSettings();
-        configuration.Bind("cdc", settings);
+        configuration.Bind("Cdc", settings);
 
         foreach (var stream in settings.Streams)
         {

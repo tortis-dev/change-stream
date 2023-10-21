@@ -10,7 +10,7 @@ namespace Tortis.ChangeStream.SqlServer;
 [UsedImplicitly]
 public class SqlServerSource : ISource
 {
-    static readonly string CONNECTION_STRING_NAME = "ConnectionStringName";
+    static readonly string CONNECTION_STRING_NAME = "ConnectionStringKey";
     static readonly string SCHEMA_NAME = "SchemaName";
     static readonly string TABLE_NAME = "TableName";
 
