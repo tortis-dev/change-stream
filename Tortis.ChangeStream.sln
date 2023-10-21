@@ -16,6 +16,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6C07ED00-7E95-4DB2-BF9B-C52CEF6CDBC8}"
+	ProjectSection(SolutionItems) = preProject
+		tests\docker-compose.yml = tests\docker-compose.yml
+		tests\enable_cdc.sql = tests\enable_cdc.sql
+		tests\example_tables.sql = tests\example_tables.sql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

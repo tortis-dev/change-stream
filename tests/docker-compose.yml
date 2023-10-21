@@ -1,0 +1,27 @@
+﻿version: "3"
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    hostname: sqlserver
+    ports:
+      - "1433:1433"
+    networks:
+      - bridge
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+      - MSSQL_PID=Developer
+      - MSSQL_AGENT_ENABLED=True
+  rabbitmq:
+    image: rabbitmq:3.12.7-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    networks:
+      - bridge
+    ports:
+      - "5672:5672"   # amqp
+      - "15672:15672" # management port
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER} 
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
