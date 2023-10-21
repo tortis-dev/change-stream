@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.RabbitM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.SqlServer.Tests", "tests\Tortis.ChangeStream.SqlServer.Tests\Tortis.ChangeStream.SqlServer.Tests.csproj", "{373C1799-6EED-4A4F-970D-E47481E09CAC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6C07ED00-7E95-4DB2-BF9B-C52CEF6CDBC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,5 +49,12 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F072C66F-0EB0-4B6F-ACDF-CDF77FB85F68}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{41BFB9F8-34B1-4075-BCB7-459A85C1E813} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
+		{16E3D191-329B-4136-8318-437066EEABD8} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
+		{7201CDB0-9586-4714-9857-19F99B7FEB89} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
+		{7C7F35B4-F17B-4617-924B-950251E39BD8} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
+		{373C1799-6EED-4A4F-970D-E47481E09CAC} = {6C07ED00-7E95-4DB2-BF9B-C52CEF6CDBC8}
 	EndGlobalSection
 EndGlobal
