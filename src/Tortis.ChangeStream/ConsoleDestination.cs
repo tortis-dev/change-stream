@@ -28,9 +28,4 @@ public sealed class ConsoleDestination : IDestination
     public void Dispose()
     {
     }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
 }

@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.Server", "Tortis.ChangeStream.Server\Tortis.ChangeStream.Server.csproj", "{7201CDB0-9586-4714-9857-19F99B7FEB89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.Server", "src\Tortis.ChangeStream.Server\Tortis.ChangeStream.Server.csproj", "{7201CDB0-9586-4714-9857-19F99B7FEB89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.SqlServer", "Tortis.ChangeStream.SqlServer\Tortis.ChangeStream.SqlServer.csproj", "{7C7F35B4-F17B-4617-924B-950251E39BD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.SqlServer", "src\Tortis.ChangeStream.SqlServer\Tortis.ChangeStream.SqlServer.csproj", "{7C7F35B4-F17B-4617-924B-950251E39BD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream", "Tortis.ChangeStream\Tortis.ChangeStream.csproj", "{41BFB9F8-34B1-4075-BCB7-459A85C1E813}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream", "src\Tortis.ChangeStream\Tortis.ChangeStream.csproj", "{41BFB9F8-34B1-4075-BCB7-459A85C1E813}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.RabbitMQ", "Tortis.ChangeStream.RabbitMQ\Tortis.ChangeStream.RabbitMQ.csproj", "{16E3D191-329B-4136-8318-437066EEABD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.RabbitMQ", "src\Tortis.ChangeStream.RabbitMQ\Tortis.ChangeStream.RabbitMQ.csproj", "{16E3D191-329B-4136-8318-437066EEABD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{373C1799-6EED-4A4F-970D-E47481E09CAC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.SqlServer.Tests", "tests\Tortis.ChangeStream.SqlServer.Tests\Tortis.ChangeStream.SqlServer.Tests.csproj", "{373C1799-6EED-4A4F-970D-E47481E09CAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

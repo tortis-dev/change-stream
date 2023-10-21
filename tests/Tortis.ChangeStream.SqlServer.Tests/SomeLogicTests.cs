@@ -4,11 +4,9 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IdentityModel.Tokens;
-using Tortis.ChangeStream;
-using Tortis.ChangeStream.SqlServer;
 using Xunit.Abstractions;
 
-namespace Tests;
+namespace Tortis.ChangeStream.SqlServer.Tests;
 
 public class SomeLogicTests
 {

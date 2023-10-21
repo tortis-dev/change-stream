@@ -27,8 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Tortis.ChangeStream.SqlServer\Tortis.ChangeStream.SqlServer.csproj" />
-      <ProjectReference Include="..\Tortis.ChangeStream\Tortis.ChangeStream.csproj" />
+      <ProjectReference Include="..\..\src\Tortis.ChangeStream.SqlServer\Tortis.ChangeStream.SqlServer.csproj" />
     </ItemGroup>
 
 </Project>
