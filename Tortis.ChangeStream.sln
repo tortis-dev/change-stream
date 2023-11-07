@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6C07ED00
 		tests\example_tables.sql = tests\example_tables.sql
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tortis.ChangeStream.ActiveMQ", "src\Tortis.ChangeStream.ActiveMQ\Tortis.ChangeStream.ActiveMQ.csproj", "{02560080-ABD8-4584-BD8B-FCC6A25F9A70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,10 @@ Global
 		{373C1799-6EED-4A4F-970D-E47481E09CAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{373C1799-6EED-4A4F-970D-E47481E09CAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{373C1799-6EED-4A4F-970D-E47481E09CAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02560080-ABD8-4584-BD8B-FCC6A25F9A70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02560080-ABD8-4584-BD8B-FCC6A25F9A70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02560080-ABD8-4584-BD8B-FCC6A25F9A70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02560080-ABD8-4584-BD8B-FCC6A25F9A70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,5 +67,6 @@ Global
 		{7201CDB0-9586-4714-9857-19F99B7FEB89} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
 		{7C7F35B4-F17B-4617-924B-950251E39BD8} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
 		{373C1799-6EED-4A4F-970D-E47481E09CAC} = {6C07ED00-7E95-4DB2-BF9B-C52CEF6CDBC8}
+		{02560080-ABD8-4584-BD8B-FCC6A25F9A70} = {BB9A11EB-4B25-4255-9BB4-7A63D449FAE1}
 	EndGlobalSection
 EndGlobal
