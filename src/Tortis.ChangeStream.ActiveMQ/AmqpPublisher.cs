@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using Apache.NMS;
 using Apache.NMS.ActiveMQ;
 using Apache.NMS.ActiveMQ.Commands;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace Tortis.ChangeStream.ActiveMQ;
