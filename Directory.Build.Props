@@ -1,0 +1,17 @@
+﻿<Project>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <Company>Toris OSS</Company>
+        <Authors>jpenniman</Authors>
+        <Product>Tortis Change Stream</Product>
+        <ProductName>$(Product)</ProductName>
+    </PropertyGroup>
+    <ItemGroup>
+        <Using Include="JetBrains.Annotations" />
+    </ItemGroup>
+</Project>
