@@ -149,6 +149,6 @@ class TestConnectionStringFactory : IConnectionStringFactory
             .AddUserSecrets<TestConnectionStringFactory>()
             .AddEnvironmentVariables()
             .Build();
-        return config["TestSqlDb"];
+        return config["TestSqlDb"] ?? string.Empty;
     }
 }

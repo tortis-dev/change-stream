@@ -14,6 +14,6 @@ sealed class AppSettingsConnectionStringFactory : IConnectionStringFactory
 
     public string GetConnectionString(string name)
     {
-        return _configuration.GetValue<string>(name);
+        return _configuration.GetValue<string>(name) ?? string.Empty;
     }
 }
