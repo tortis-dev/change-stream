@@ -1,13 +1,17 @@
-﻿version: "3"
+﻿version: "3.8"
+name: change-stream
+networks:
+  develop:
+    external: true
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: sqlserver
-    hostname: sqlserver
+    container_name: cdc_sqlserver
+    hostname: cdc_sqlserver
     ports:
       - "1433:1433"
     networks:
-      - bridge
+      - develop
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${SA_PASSWORD}
@@ -15,10 +19,10 @@ services:
       - MSSQL_AGENT_ENABLED=True
   rabbitmq:
     image: rabbitmq:3.12.7-management-alpine
-    container_name: rabbitmq
-    hostname: rabbitmq
+    container_name: cdc_rabbitmq
+    hostname: cdc_rabbitmq
     networks:
-      - bridge
+      - develop
     ports:
       - "5672:5672"   # amqp
       - "15672:15672" # management port

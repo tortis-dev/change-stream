@@ -354,3 +354,6 @@ MigrationBackup/
 
 # draw.io
 .bkp
+
+# Docker Compose
+.env
