@@ -14,16 +14,8 @@ public static class ServiceCollectionExtensions
 
         var settings = new CdcSettings();
         configuration.Bind("Cdc", settings);
-
-        foreach (var stream in settings.Streams)
-        {
-            services.AddHostedService(container =>
-            {
-                var factory = container.GetRequiredService<PropagatorFactory>();
-                return factory.CreatePropagator(stream);
-            });
-        }
-
+        services.AddSingleton(settings);
+        services.AddHostedService<PropagatorHostedService>();
         return services;
     }
 

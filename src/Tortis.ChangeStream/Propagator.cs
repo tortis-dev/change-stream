@@ -8,7 +8,7 @@ namespace Tortis.ChangeStream;
 /// <summary>
 /// Creates and manages Source/Destination instance pairs and their lifecycle.
 /// </summary>
-sealed class Propagator : BackgroundService
+sealed class Propagator : IDisposable
 {
     readonly ISource _source;
     readonly IDestination _destination;
@@ -32,8 +32,9 @@ sealed class Propagator : BackgroundService
             .WrapAsync(Policy.Handle<Exception>().WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(100) }));
     }
     
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    internal async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _logger.LogInformation("Starting Propagator for source {source}", _source.GetType().FullName);
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -65,10 +66,9 @@ sealed class Propagator : BackgroundService
         }
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         _source.Dispose();
         _destination.Dispose();
-        base.Dispose();
     }
 }
